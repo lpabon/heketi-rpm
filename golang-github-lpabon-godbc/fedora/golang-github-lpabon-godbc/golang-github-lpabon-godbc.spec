@@ -36,10 +36,10 @@
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 
 Name:           golang-%{provider}-%{project}-%{repo}
-Version:        0
-Release:        0.1.git%{shortcommit}%{?dist}
-Summary:        !!!!FILL!!!!
-License:        !!!!FILL!!!!
+Version:        1.0.1
+Release:        1.git%{shortcommit}%{?dist}
+Summary:        Design by contract for Go
+License:        ASL 2.0
 URL:            https://%{provider_prefix}
 Source0:        https://%{provider_prefix}/archive/%{commit}/%{repo}-%{shortcommit}.tar.gz
 
@@ -73,7 +73,7 @@ building other packages which use import path with
 %endif
 
 %if 0%{?with_unit_test} && 0%{?with_devel}
-%package unit-test
+%package unit-test-devel
 Summary:         Unit tests for %{name} package
 # If go_compiler is not set to 1, there is no virtual provide. Use golang instead.
 BuildRequires:  %{?go_compiler:compiler(go-compiler)}%{!?go_compiler:golang}
@@ -86,7 +86,7 @@ BuildRequires:  %{?go_compiler:compiler(go-compiler)}%{!?go_compiler:golang}
 # test subpackage tests code from devel subpackage
 Requires:        %{name}-devel = %{version}-%{release}
 
-%description unit-test
+%description unit-test-devel
 %{summary}
 
 This package contains unit tests for project
@@ -114,12 +114,12 @@ done
 # testing files for this project
 %if 0%{?with_unit_test} && 0%{?with_devel}
 install -d -p %{buildroot}/%{gopath}/src/%{import_path}/
-# find all *_test.go files and generate unit-test.file-list
+# find all *_test.go files and generate unit-test-devel.file-list
 for file in $(find . -iname "*_test.go"); do
     echo "%%dir %%{gopath}/src/%%{import_path}/$(dirname $file)" >> devel.file-list
     install -d -p %{buildroot}/%{gopath}/src/%{import_path}/$(dirname $file)
     cp -pav $file %{buildroot}/%{gopath}/src/%{import_path}/$file
-    echo "%%{gopath}/src/%%{import_path}/$file" >> unit-test.file-list
+    echo "%%{gopath}/src/%%{import_path}/$file" >> unit-test-devel.file-list
 done
 %endif
 
@@ -146,13 +146,13 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/Godeps/_workspace:%{gopath}
 %endif
 
 %if 0%{?with_unit_test} && 0%{?with_devel}
-%files unit-test -f unit-test.file-list
+%files unit-test-devel -f unit-test-devel.file-list
 %copying LICENSE
 %doc README.md AUTHORS
 %endif
 
 %changelog
-* Wed Oct 14 2015 lpabon <lpabon@redhat.com> - 0-0.1.git9577782
+* Wed Oct 14 2015 lpabon <lpabon@redhat.com> - 1.0.1-1.git9577782
 - First package for Fedora
 
 

@@ -37,7 +37,7 @@
 
 Name:           golang-%{provider}-%{project}-%{repo}
 Version:        0.1
-Release:        0.1.git%{shortcommit}%{?dist}
+Release:        1.git%{shortcommit}%{?dist}
 Summary:        Idiomatic HTTP Middleware for Golang
 License:        MIT
 URL:            https://%{provider_prefix}
@@ -149,7 +149,7 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/Godeps/_workspace:%{gopath}
 %endif
 
 %changelog
-* Mon Oct 12 2015 lpabon <lpabon@redhat.com> - 0-0.1.gitc7477ad
+* Mon Oct 12 2015 lpabon <lpabon@redhat.com> - 0.1-1.gitc7477ad
 - First package for Fedora
 
 

@@ -113,7 +113,7 @@ sort -u -o devel.file-list devel.file-list
 %endif
 
 %changelog
-* Mon Oct 12 2015 lpabon <lpabon@redhat.com> - 0-0.1.git8c897f7
+* Mon Oct 12 2015 lpabon <lpabon@redhat.com> - 0.1-1.git8c897f7
 - First package for Fedora
 
 

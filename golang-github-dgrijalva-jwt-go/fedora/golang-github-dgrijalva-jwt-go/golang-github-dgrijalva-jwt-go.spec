@@ -150,7 +150,7 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/Godeps/_workspace:%{gopath}
 %endif
 
 %changelog
-* Mon Oct 12 2015 lpabon <lpabon@redhat.com> - 0-0.1.git5ca8014
+* Mon Oct 12 2015 lpabon <lpabon@redhat.com> - 2.2.0.23-1.git5ca8014
 - First package for Fedora
 
 
