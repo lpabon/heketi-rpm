@@ -144,10 +144,11 @@ mkdir -p src/%{provider}.%{provider_tld}/%{project}
 ln -s $(pwd) src/%{provider}.%{provider_tld}/%{project}/%{repo}
 %if ! 0%{?with_bundled}
 export GOPATH=$(pwd):%{gopath}
-export LDFALGS="-X main.HEKETI_VERSION %{version}"
-%gobuild -o %{name} %{import_path}
-export LDFALGS="-X main.HEKETI_CLI_VERSION %{version}"
-%gobuild -o client/cli/go/%{name}-cli %{import_path}/client/cli/go
+export LDFLAGS="-X main.HEKETI_VERSION %{version}"
+%gobuild -o %{name}
+export LDFLAGS="-X main.HEKETI_CLI_VERSION %{version}"
+cd client/cli/go
+%gobuild -o %{name}-cli
 %else
 export GOPATH=%{buildroot}/%{gopath}:%{gopath}
 make VERSION=%{version}
@@ -209,8 +210,7 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/Godeps/_workspace:%{gopath}
 
 %pre
 getent group %{name} >/dev/null || groupadd -r %{name}
-getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/%{name} \ 
-    -s /sbin/nologin -c "heketi user" %{name}
+getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/%{name} -s /sbin/nologin -c "heketi user" %{name}
 
 %post
 %systemd_post %{name}.service
@@ -245,7 +245,7 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
-* Mon Oct 12 2015 lpabon <lpabon@redhat.com> - 0-0.1.git7d2a783
+* Mon Oct 12 2015 lpabon <lpabon@redhat.com> - 1.0.0-1
 - First package for Fedora
 
 
