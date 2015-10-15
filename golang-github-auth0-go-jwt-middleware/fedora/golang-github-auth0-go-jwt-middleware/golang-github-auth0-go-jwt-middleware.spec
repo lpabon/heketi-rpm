@@ -2,7 +2,7 @@
 %global with_devel 1
 %global with_bundled 0
 %global with_debug 0
-%global with_check 1
+%global with_check 0
 %global with_unit_test 1
 %else
 %global with_devel 0
@@ -80,6 +80,27 @@ building other packages which use import path with
 %{import_path} prefix.
 %endif
 
+%if 0%{?with_unit_test} && 0%{?with_devel}
+%package unit-test-devel
+Summary:         Unit tests for %{name} package
+# If go_compiler is not set to 1, there is no virtual provide. Use golang instead.
+BuildRequires:  %{?go_compiler:compiler(go-compiler)}%{!?go_compiler:golang}
+
+%if 0%{?with_check}
+#Here comes all BuildRequires: PACKAGE the unit tests
+#in %%check section need for running
+%endif
+
+# test subpackage tests code from devel subpackage
+Requires:        %{name}-devel = %{version}-%{release}
+
+%description unit-test-devel
+%{summary}
+
+This package contains unit tests for project
+providing packages with %{import_path} prefix.
+%endif
+
 %prep
 %setup -q -n %{repo}-%{commit}
 
@@ -98,11 +119,31 @@ for file in $(find . -iname "*.go" \! -iname "*_test.go") ; do
 done
 %endif
 
+# testing files for this project
+%if 0%{?with_unit_test} && 0%{?with_devel}
+install -d -p %{buildroot}/%{gopath}/src/%{import_path}/
+# find all *_test.go files and generate unit-test-devel.file-list
+for file in $(find . -iname "*_test.go"); do
+    echo "%%dir %%{gopath}/src/%%{import_path}/$(dirname $file)" >> devel.file-list
+    install -d -p %{buildroot}/%{gopath}/src/%{import_path}/$(dirname $file)
+    cp -pav $file %{buildroot}/%{gopath}/src/%{import_path}/$file
+    echo "%%{gopath}/src/%%{import_path}/$file" >> unit-test-devel.file-list
+done
+%endif
+
 %if 0%{?with_devel}
 sort -u -o devel.file-list devel.file-list
 %endif
 
 %check
+%if 0%{?with_check} && 0%{?with_unit_test} && 0%{?with_devel}
+%if ! 0%{?with_bundled}
+export GOPATH=%{buildroot}/%{gopath}:%{gopath}
+%else
+export GOPATH=%{buildroot}/%{gopath}:$(pwd)/Godeps/_workspace:%{gopath}
+%endif
+%gotest %{import_path}
+%endif
 
 %if 0%{?with_devel}
 %files devel -f devel.file-list
@@ -110,6 +151,12 @@ sort -u -o devel.file-list devel.file-list
 %doc README.md
 %dir %{gopath}/src/%{provider}.%{provider_tld}/%{project}
 %dir %{gopath}/src/%{import_path}
+%endif
+
+%if 0%{?with_unit_test} && 0%{?with_devel}
+%files unit-test-devel -f unit-test-devel.file-list
+%copying LICENSE.txt
+%doc README.md
 %endif
 
 %changelog
