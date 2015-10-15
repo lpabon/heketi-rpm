@@ -32,7 +32,7 @@
 # https://github.com/heketi/heketi
 %global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
 %global import_path     %{provider_prefix}
-%global commit          7d2a7830f0c793ae8151c119ea41b3e8f0148c60
+%global commit          3f4a5b1b6edff87232e8b24533c53b4151ebd9c7
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 
 Name:           %{repo}
@@ -202,7 +202,6 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/Godeps/_workspace:%{gopath}
 %endif
 %gotest %{import_path}/apps/glusterfs
 %gotest %{import_path}/client/api/go-client
-%gotest %{import_path}/client/cli/go/commands
 %gotest %{import_path}/middleware
 %gotest %{import_path}/rest
 %gotest %{import_path}/utils
