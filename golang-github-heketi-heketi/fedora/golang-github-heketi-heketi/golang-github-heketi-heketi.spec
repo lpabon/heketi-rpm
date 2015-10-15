@@ -145,9 +145,9 @@ ln -s $(pwd) src/%{provider}.%{provider_tld}/%{project}/%{repo}
 %if ! 0%{?with_bundled}
 export GOPATH=$(pwd):%{gopath}
 export LDFALGS="-X main.HEKETI_VERSION %{version}"
-%gobuild -o %{name} # %{import_path}
+%gobuild -o %{name} %{import_path}
 export LDFALGS="-X main.HEKETI_CLI_VERSION %{version}"
-%gobuild -o %{import_path}/client/cli/go/%{name}-cli %{import_path}/client/cli/go
+%gobuild -o client/cli/go/%{name}-cli %{import_path}/client/cli/go
 %else
 export GOPATH=%{buildroot}/%{gopath}:%{gopath}
 make VERSION=%{version}
@@ -204,8 +204,6 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/Godeps/_workspace:%{gopath}
 %gotest %{import_path}/client/cli/go/commands
 %gotest %{import_path}/middleware
 %gotest %{import_path}/rest
-%gotest %{import_path}/tests/functional/large/tests
-%gotest %{import_path}/tests/functional/small/tests
 %gotest %{import_path}/utils
 %endif
 
