@@ -9,6 +9,7 @@ User=heketi
 ExecStart=/usr/bin/heketi -config=/etc/heketi/heketi.json
 Restart=on-failure
 StandardOutput=syslog
+StandardError=syslog
 
 [Install]
 WantedBy=multi-user.target
