@@ -18,13 +18,6 @@
 %global debug_package   %{nil}
 %endif
 
-%define gocheck() \
-%if 0%{?fedora} \
-%gotest %{*} \
-%else \
-go test -v %{*} \
-%endif
-
 %global provider        github
 %global provider_tld    com
 %global project         heketi
@@ -44,9 +37,7 @@ URL:            https://%{provider_prefix}
 Source0:        https://%{provider_prefix}/archive/%{commit}/%{repo}-%{shortcommit}.tar.gz
 Source1:        %{name}.service
 Source2:        %{name}.json
-%if 0%{with_bundled}
-Source3:        godeps-%{shortcommit}.tar.gz
-%endif
+Source3:        %{name}-godeps-%{shortcommit}.tar.gz
 
 # e.g. el6 has ppc64 arch without gcc-go, so EA tag is required
 ExclusiveArch:  %{?go_arches:%{go_arches}}%{!?go_arches:%{ix86} x86_64 %{arm}}
@@ -202,16 +193,22 @@ sort -u -o devel.file-list devel.file-list
 
 %check
 %if 0%{?with_check} && 0%{?with_unit_test} && 0%{?with_devel}
+
 %if ! 0%{?with_bundled}
 export GOPATH=%{buildroot}/%{gopath}:%{gopath}
+%gotest %{import_path}/apps/glusterfs
+%gotest %{import_path}/client/api/go-client
+%gotest %{import_path}/middleware
+%gotest %{import_path}/rest
+%gotest %{import_path}/utils
 %else
 export GOPATH=$(pwd):%{gopath}
+go test -v %{import_path}/apps/glusterfs
+go test -v %{import_path}/client/api/go-client
+go test -v %{import_path}/middleware
+go test -v %{import_path}/rest
+go test -v %{import_path}/utils
 %endif
-%gocheck %{import_path}/apps/glusterfs
-%gocheck %{import_path}/client/api/go-client
-%gocheck %{import_path}/middleware
-%gocheck %{import_path}/rest
-%gocheck %{import_path}/utils
 %endif
 
 %pre
