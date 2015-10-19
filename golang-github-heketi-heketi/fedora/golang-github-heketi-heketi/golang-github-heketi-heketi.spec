@@ -1,15 +1,15 @@
-%if 0%{?fedora} || 0%{?rhel} == 6
+%if 0%{?fedora}
 %global with_devel 1
 %global with_bundled 0
 %global with_debug 1
 %global with_check 1
 %global with_unit_test 1
 %else
-%global with_devel 0
-%global with_bundled 0
+%global with_devel 1
+%global with_bundled 1
 %global with_debug 0
-%global with_check 0
-%global with_unit_test 0
+%global with_check 1
+%global with_unit_test 1
 %endif
 
 %if 0%{?with_debug}
@@ -23,6 +23,13 @@
 %license %{*} \
 %else \
 %doc %{*} \
+%endif
+
+%define gocheck() \
+%if 0%{?fedora} \
+%gotest %{*} \
+%else \
+go test -v %{*} \
 %endif
 
 %global provider        github
@@ -44,6 +51,9 @@ URL:            https://%{provider_prefix}
 Source0:        https://%{provider_prefix}/archive/%{commit}/%{repo}-%{shortcommit}.tar.gz
 Source1:        %{name}.service
 Source2:        %{name}.json
+%if 0%{with_bundled}
+Source3:        godeps-%{shortcommit}.tar.gz
+%endif
 
 # e.g. el6 has ppc64 arch without gcc-go, so EA tag is required
 ExclusiveArch:  %{?go_arches:%{go_arches}}%{!?go_arches:%{ix86} x86_64 %{arm}}
@@ -72,7 +82,7 @@ single GlusterFS cluster.
 Summary:       %{summary}
 BuildArch:     noarch
 
-%if 0%{?with_check}
+%if 0%{?with_check} && ! 0%{?with_bundled}
 BuildRequires: golang(github.com/auth0/go-jwt-middleware)
 BuildRequires: golang(github.com/boltdb/bolt)
 BuildRequires: golang(github.com/codegangsta/negroni)
@@ -83,16 +93,6 @@ BuildRequires: golang(github.com/lpabon/godbc)
 BuildRequires: golang(golang.org/x/crypto/ssh)
 BuildRequires: golang(golang.org/x/crypto/ssh/agent)
 %endif
-
-Requires:      golang(github.com/auth0/go-jwt-middleware)
-Requires:      golang(github.com/boltdb/bolt)
-Requires:      golang(github.com/codegangsta/negroni)
-Requires:      golang(github.com/dgrijalva/jwt-go)
-Requires:      golang(github.com/gorilla/context)
-Requires:      golang(github.com/gorilla/mux)
-Requires:      golang(github.com/lpabon/godbc)
-Requires:      golang(golang.org/x/crypto/ssh)
-Requires:      golang(golang.org/x/crypto/ssh/agent)
 
 Provides:      golang(%{import_path}/apps) = %{version}-%{release}
 Provides:      golang(%{import_path}/apps/glusterfs) = %{version}-%{release}
@@ -142,16 +142,26 @@ providing packages with %{import_path} prefix.
 %build
 mkdir -p src/%{provider}.%{provider_tld}/%{project}
 ln -s $(pwd) src/%{provider}.%{provider_tld}/%{project}/%{repo}
+
+# ! Bundled
 %if ! 0%{?with_bundled}
 export GOPATH=$(pwd):%{gopath}
 export LDFLAGS="-X main.HEKETI_VERSION %{version}"
 %gobuild -o %{name}
+
 export LDFLAGS="-X main.HEKETI_CLI_VERSION %{version}"
 cd client/cli/go
 %gobuild -o %{name}-cli
 %else
-export GOPATH=%{buildroot}/%{gopath}:%{gopath}
-make VERSION=%{version}
+
+# Bundled
+export GOPATH=$(pwd):%{gopath}
+tar xzf %{SOURCE3}
+go build -ldflags "-X main.HEKETI_VERSION %{version}" -o %{name}
+
+cd client/cli/go
+go build -ldflags "-X main.HEKETI_CLI_VERSION %{version}" -o %{name}-cli
+
 %endif
 
 %install
@@ -198,13 +208,13 @@ sort -u -o devel.file-list devel.file-list
 %if ! 0%{?with_bundled}
 export GOPATH=%{buildroot}/%{gopath}:%{gopath}
 %else
-export GOPATH=%{buildroot}/%{gopath}:$(pwd)/Godeps/_workspace:%{gopath}
+export GOPATH=$(pwd):%{gopath}
 %endif
-%gotest %{import_path}/apps/glusterfs
-%gotest %{import_path}/client/api/go-client
-%gotest %{import_path}/middleware
-%gotest %{import_path}/rest
-%gotest %{import_path}/utils
+%gocheck %{import_path}/apps/glusterfs
+%gocheck %{import_path}/client/api/go-client
+%gocheck %{import_path}/middleware
+%gocheck %{import_path}/rest
+%gocheck %{import_path}/utils
 %endif
 
 %pre
