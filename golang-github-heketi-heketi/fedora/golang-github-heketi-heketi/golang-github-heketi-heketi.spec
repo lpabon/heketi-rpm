@@ -18,13 +18,6 @@
 %global debug_package   %{nil}
 %endif
 
-%define copying() \
-%if 0%{?fedora} >= 21 || 0%{?rhel} >= 7 \
-%license %{*} \
-%else \
-%doc %{*} \
-%endif
-
 %define gocheck() \
 %if 0%{?fedora} \
 %gotest %{*} \
@@ -157,10 +150,13 @@ cd client/cli/go
 # Bundled
 export GOPATH=$(pwd):%{gopath}
 tar xzf %{SOURCE3}
-go build -ldflags "-X main.HEKETI_VERSION %{version}" -o %{name}
+
+%define gohash %(head -c20 /dev/urandom | od -An -tx1 | tr -d '\ \\n')
+
+go build -ldflags "-X main.HEKETI_VERSION %{version} -B 0x%{gohash}" -o %{name}
 
 cd client/cli/go
-go build -ldflags "-X main.HEKETI_CLI_VERSION %{version}" -o %{name}-cli
+go build -ldflags "-X main.HEKETI_CLI_VERSION %{version} -B 0x%{gohash}" -o %{name}-cli
 
 %endif
 
@@ -178,6 +174,7 @@ install -d -m 0755 %{buildroot}%{_sharedstatedir}/%{name}
 # source codes for building projects
 %if 0%{?with_devel}
 install -d -p %{buildroot}/%{gopath}/src/%{import_path}/
+echo "%%dir %%{gopath}/src/%%{import_path}/." >> devel.file-list
 # find all *.go but no *_test.go files and generate devel.file-list
 for file in $(find . -iname "*.go" \! -iname "*_test.go") ; do
     echo "%%dir %%{gopath}/src/%%{import_path}/$(dirname $file)" >> devel.file-list
@@ -230,8 +227,11 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %postun
 %systemd_postun %{name}.service
 
+#define license tag if not already defined
+%{!?_licensedir:%global license %doc}
+
 %files
-%copying LICENSE
+%license LICENSE
 %doc README.md AUTHORS
 %config(noreplace) %{_sysconfdir}/%{name}
 %{_bindir}/%{name}
@@ -241,7 +241,7 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 
 %if 0%{?with_devel}
 %files devel -f devel.file-list
-%copying LICENSE
+%license LICENSE
 %doc README.md AUTHORS
 %dir %{gopath}/src/%{provider}.%{provider_tld}/%{project}
 %dir %{gopath}/src/%{import_path}
@@ -249,7 +249,7 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 
 %if 0%{?with_unit_test} && 0%{?with_devel}
 %files unit-test-devel -f unit-test-devel.file-list
-%copying LICENSE
+%license LICENSE
 %doc README.md AUTHORS
 %endif
 
