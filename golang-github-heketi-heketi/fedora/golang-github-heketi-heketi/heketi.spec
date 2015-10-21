@@ -79,15 +79,15 @@ BuildRequires: golang(golang.org/x/crypto/ssh/agent)
 %endif
 
 %if 0%{?with_bundled} && 0%{?fedora}
-Provides: bundled(github.com/auth0/go-jwt-middleware) = 8c897f7
-Provides: bundled(github.com/boltdb/bolt) = 980670a
-Provides: bundled(github.com/codegangsta/negroni) = c7477ad
-Provides: bundled(github.com/dgrijalva/jwt-go) = 5ca8014
-Provides: bundled(github.com/gorilla/context) = 215affd
-Provides: bundled(github.com/gorilla/mux) = f15e0c4
-Provides: bundled(github.com/lpabon/godbc) = 9577782
-Provides: bundled(golang.org/x/crypto/ssh) = fcdb74e
-Provides: bundled(golang.org/x/crypto/ssh/agent) = fcdb74e
+Provides: bundled(golang(github.com/auth0/go-jwt-middleware)) = 8c897f7c3631a9e9405b9496fd8ce241acdef230
+Provides: bundled(golang(github.com/boltdb/bolt)) = 980670afcebfd86727505b3061d8667195234816
+Provides: bundled(golang(github.com/codegangsta/negroni)) = c7477ad8e330bef55bf1ebe300cf8aa67c492d1b
+Provides: bundled(golang(github.com/dgrijalva/jwt-go)) = 5ca80149b9d3f8b863af0e2bb6742e608603bd99
+Provides: bundled(golang(github.com/gorilla/context)) = 215affda49addc4c8ef7e2534915df2c8c35c6cd
+Provides: bundled(golang(github.com/gorilla/mux)) = f15e0c49460fd49eebe2bcc8486b05d1bef68d3a
+Provides: bundled(golang(github.com/lpabon/godbc)) = 9577782540c1398b710ddae1b86268ba03a19b0c
+Provides: bundled(golang(golang.org/x/crypto/ssh)) = fcdb74e78f2621098ebc0376bbadffcf580ccfe4
+Provides: bundled(golang(golang.org/x/crypto/ssh/agent)) = fcdb74e78f2621098ebc0376bbadffcf580ccfe4
 %endif
 
 Provides:      golang(%{import_path}/apps) = %{version}-%{release}
