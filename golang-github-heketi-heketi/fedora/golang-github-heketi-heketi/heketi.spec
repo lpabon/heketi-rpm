@@ -78,6 +78,18 @@ BuildRequires: golang(golang.org/x/crypto/ssh)
 BuildRequires: golang(golang.org/x/crypto/ssh/agent)
 %endif
 
+%if 0%{?with_bundled} && 0%{?fedora}
+Provides: bundled(github.com/auth0/go-jwt-middleware) = 8c897f7
+Provides: bundled(github.com/boltdb/bolt) = 980670a
+Provides: bundled(github.com/codegangsta/negroni) = c7477ad
+Provides: bundled(github.com/dgrijalva/jwt-go) = 5ca8014
+Provides: bundled(github.com/gorilla/context) = 215affd
+Provides: bundled(github.com/gorilla/mux) = f15e0c4
+Provides: bundled(github.com/lpabon/godbc) = 9577782
+Provides: bundled(golang.org/x/crypto/ssh) = fcdb74e
+Provides: bundled(golang.org/x/crypto/ssh/agent) = fcdb74e
+%endif
+
 Provides:      golang(%{import_path}/apps) = %{version}-%{release}
 Provides:      golang(%{import_path}/apps/glusterfs) = %{version}-%{release}
 Provides:      golang(%{import_path}/client/api/go-client) = %{version}-%{release}
