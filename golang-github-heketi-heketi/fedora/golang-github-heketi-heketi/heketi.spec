@@ -12,6 +12,11 @@
 %global with_unit_test 1
 %endif
 
+# Determine if systemd will be used
+%if ( 0%{?fedora} && 0%{?fedora} > 16 ) || ( 0%{?rhel} && 0%{?rhel} > 6 )
+%global with_systemd 1
+%endif
+
 %if 0%{?with_debug}
 %global _dwz_low_mem_die_limit 0
 %else
@@ -30,7 +35,7 @@
 
 Name:           %{repo}
 Version:        1.0.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        RESTful based volume management framework for GlusterFS
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
@@ -38,17 +43,26 @@ Source0:        https://%{provider_prefix}/archive/%{commit}/%{repo}-%{shortcomm
 Source1:        %{name}.service
 Source2:        %{name}.json
 Source3:        %{name}-godeps-%{shortcommit}.tar.gz
+Source4:        %{name}.initd
 
 # e.g. el6 has ppc64 arch without gcc-go, so EA tag is required
 ExclusiveArch:  %{?go_arches:%{go_arches}}%{!?go_arches:%{ix86} x86_64 %{arm}}
 # If go_compiler is not set to 1, there is no virtual provide. Use golang instead.
 BuildRequires:  %{?go_compiler:compiler(go-compiler)}%{!?go_compiler:golang}
-BuildRequires:  systemd
 
 Requires(pre):  shadow-utils
+
+%if 0%{?with_systemd}
+BuildRequires:  systemd
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
+%else
+Requires(post):   /sbin/chkconfig
+Requires(preun):  /sbin/service
+Requires(preun):  /sbin/chkconfig
+Requires(postun): /sbin/service
+%endif
 
 %description
 Heketi provides a RESTful management interface which can be used to manage
@@ -166,9 +180,13 @@ go build -ldflags "-X main.HEKETI_CLI_VERSION %{version} -B 0x%{gohash}" -o %{na
 %install
 install -D -p -m 0755 %{name} %{buildroot}%{_bindir}/%{name}
 install -D -p -m 0755 client/cli/go/%{name}-cli %{buildroot}%{_bindir}/%{name}-cli
-install -D -p -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/%{name}.service
 install -d -m 0755 %{buildroot}%{_sysconfdir}/%{name}
 install -m 644 -t %{buildroot}%{_sysconfdir}/%{name} %{SOURCE2}
+%if 0%{?with_systemd}
+install -D -p -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/%{name}.service
+%else
+install -D -p -m 0755 %{SOURCE4} %{buildroot}%{_sysconfdir}/init.d/%{name}
+%endif
 
 # And create /var/lib/heketi
 install -d -m 0755 %{buildroot}%{_sharedstatedir}/%{name}
@@ -228,13 +246,26 @@ getent group %{name} >/dev/null || groupadd -r %{name}
 getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/%{name} -s /sbin/nologin -c "heketi user" %{name}
 
 %post
+%if 0%{?with_systemd}
 %systemd_post %{name}.service
+%else
+/sbin/chkconfig --add %{name}
+%endif
 
 %preun
+%if 0%{?with_systemd}
 %systemd_preun %{name}.service
+%else
+/sbin/service %{name} stop &> /dev/null
+%endif
 
 %postun
+%if 0%{?with_systemd}
 %systemd_postun %{name}.service
+%else
+/sbin/chkconfig --del %{name}
+%endif
+
 
 #define license tag if not already defined
 %{!?_licensedir:%global license %doc}
@@ -246,7 +277,11 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %{_bindir}/%{name}
 %{_bindir}/%{name}-cli
 %dir %attr(-,%{name},%{name}) %{_sharedstatedir}/%{name}
+%if 0%{?with_systemd}
 %{_unitdir}/%{name}.service
+%else
+%{_sysconfdir}/init.d/%{name}
+%endif
 
 %if 0%{?with_devel}
 %files devel -f devel.file-list
