@@ -35,7 +35,7 @@
 
 Name:           %{repo}
 Version:        1.0.0
-Release:        2%{?dist}
+Release:        1%{?dist}
 Summary:        RESTful based volume management framework for GlusterFS
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
